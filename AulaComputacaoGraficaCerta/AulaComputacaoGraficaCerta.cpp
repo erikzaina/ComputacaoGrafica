@@ -32,12 +32,26 @@ int main()
     glfwMakeContextCurrent(window);
 
     glewExperimental = GL_TRUE;
-    if (!glewInit()) {
+    glewInit();
+    if (glewInit() != GLEW_OK) {
         printf("Glew não foi iniciado!");
         glfwDestroyWindow(window);
         glfwTerminate();
         return 1;
     }
 
+    glViewport(0, 0, bufferWidth, bufferHeight);
+    while (!glfwWindowShouldClose(window)) {
+        //cria evento
+        glfwPollEvents();
+        //define a cor do background
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glfwSwapBuffers(window);
+
+
+
+    }
 }
