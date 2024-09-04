@@ -1,12 +1,14 @@
 #include <iostream>
+#include <vector>
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "Mesh.h"
 
-GLuint VAO, VBO, IBO, programa;
-
+GLuint programa;
+std::vector<Mesh*> listMesh;
 
 //Vertex Shader
 static const char* vShader = "                                \n\
@@ -48,22 +50,11 @@ void CriaTriangulos() {
 		0, 2, 3
 	};
 
-	glGenVertexArrays(1, &VAO); //Cria o VAO
-	glBindVertexArray(VAO); //Coloca o VAO em contexto
+	Mesh* tri1 = new Mesh();
+	tri1->CreateMesh(vertices, sizeof(vertices),
+		indices, sizeof(indices));
+	listMesh.push_back(tri1);
 
-	glGenBuffers(1, &IBO); //Cria o IBO
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); //Coloca o IBO em contexto
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); //Explica o valor do Array
-
-	glGenBuffers(1, &VBO); //Cria o VBO
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); //Coloca o VBO em contexto
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //Explica o valor do Array
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0); //Explica os valores de x e y
-	glEnableVertexAttribArray(0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //remover do contexto o IBO
-	glBindBuffer(GL_ARRAY_BUFFER, 0); //remover do contexto o VBO
-	glBindVertexArray(0); //remover do contexto o VAO
 }
 
 
@@ -125,8 +116,8 @@ int main() {
 	bool direction = true, sizeDirection = true, angleDirection = true;
 	//true=direita e false=esquerda
 	float triOffset = 0.0f, maxOffset = 0.7f, minOffset = -0.7f, incOffset = 0.001f;
-	float size = 0.4f, maxSize = 0.7f, minSize = -0.7f, incSize = 0.0001f;
-	float angle = 0.0f, maxAngle = 360.0f, minAngle = -1.0f, incAngle = 0.009f;
+	float size = 0.4f, maxSize = 0.7f, minSize = -0.7f, incSize = 0.001f;
+	float angle = 0.0f, maxAngle = 360.0f, minAngle = -1.0f, incAngle = 0.1f;
 
 	while (!glfwWindowShouldClose(mainWindow)) {
 
@@ -138,14 +129,7 @@ int main() {
 
 		//Desenha o triangulo
 		glUseProgram(programa);
-		glBindVertexArray(VAO);
-
-		/*
-		* Desenha o triangulo 3D
-		*/
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); //Coloca o IBO em contexto
-		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); //remover do contexto o IBO
+		listMesh[0]->RenderMesh();
 
 		/*
 		* Alterando a cor do triangulo
@@ -161,11 +145,11 @@ int main() {
 		*/
 		if (triOffset >= maxOffset || triOffset <= minOffset)
 			direction = !direction;
-		triOffset += direction ? incOffset : incOffset * -1;
+		triOffset += direction ? incOffset : incOffset * -0.4;
 
 		if (size >= maxSize || size <= minSize)
 			sizeDirection = !sizeDirection;
-		size += sizeDirection ? incSize : incSize * -1;
+		size += sizeDirection ? incSize : incSize * -0.8;
 
 		if (angle >= maxAngle || angle <= minAngle)
 			angleDirection = !angleDirection;
@@ -175,13 +159,13 @@ int main() {
 		glm::mat4 model(1.0f);
 
 		//Movimentações do triangulo
-		model = glm::translate(model, glm::vec3(triOffset, triOffset, 0.0f));
+		model = glm::translate(model, glm::vec3(triOffset, -triOffset, 0.0f));
 
 		//Tamanho do triangulo
 		model = glm::scale(model, glm::vec3(0.4, 0.4, 0.4));
 
 		//Rotação
-		model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 00.005f, 0.0f));
 
 		GLuint uniModel = glGetUniformLocation(programa, "model");
 		glUniformMatrix4fv(uniModel, 1, GL_FALSE, glm::value_ptr(model));
